@@ -1,0 +1,640 @@
+HTML_HEADER_AND_BODY = """<!DOCTYPE html>
+<html lang="si">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10 සහ 11 ශ්‍රේණි - ඉතිහාසය (මාර්ගගත විභාග හා ඇගයීම් පද්ධතිය)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts - Noto Sans Sinhala -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Noto Sans Sinhala', sans-serif;
+            background-color: #f1f5f9;
+            color: #1f2937;
+        }
+        .option-btn {
+            transition: all 0.2s ease-in-out;
+        }
+        .option-btn:hover {
+            background-color: #eff6ff;
+            border-color: #3b82f6;
+        }
+        .option-btn.selected {
+            background-color: #dbeafe;
+            border-color: #1d4ed8;
+            font-weight: 600;
+        }
+        .no-select {
+            user-select: none;
+        }
+        .star-rating i {
+            transition: color 0.15s ease-in-out;
+            cursor: pointer;
+        }
+        @media print {
+            .no-print { display: none !important; }
+            body { background-color: white; }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen pb-12">
+
+    <!-- Header / Navigation Bar -->
+    <header class="sticky top-0 z-40 bg-blue-950 text-white shadow-lg border-b-4 border-amber-500 no-print">
+        <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap justify-between items-center gap-3">
+            <div class="flex items-center gap-3">
+                <button onclick="returnToHome()" class="bg-blue-900 hover:bg-blue-800 text-amber-300 border border-blue-700 px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 transition shrink-0" title="මුල් පිටුවට යන්න">
+                    <i class="fa-solid fa-house"></i>
+                    <span class="hidden sm:inline">මුල් පිටුව</span>
+                </button>
+                <div>
+                    <span id="header-unit-label" class="text-xs text-amber-400 font-semibold uppercase tracking-wider block">10 & 11 ශ්‍රේණි - ඉතිහාසය</span>
+                    <h1 id="header-lesson-title" class="text-base md:text-xl font-bold leading-tight">මාර්ගගත බහුවරණ ඇගයීම් පද්ධතිය</h1>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3">
+                <!-- Timer & Progress (Visible during Exam) -->
+                <div id="exam-status-bar" class="hidden flex items-center gap-3 bg-blue-900 px-3 py-1.5 rounded-lg border border-blue-700">
+                    <div class="flex items-center gap-1.5">
+                        <i class="fa-regular fa-clock text-amber-400 text-base"></i>
+                        <span id="timer" class="font-mono text-base md:text-lg font-bold text-amber-300">60:00</span>
+                    </div>
+                    <div class="h-6 w-px bg-blue-700"></div>
+                    <div class="text-xs">
+                        <span class="text-slate-300 block">පිළිතුරු</span>
+                        <span id="progress-text" class="font-bold text-emerald-400">0 / 40</span>
+                    </div>
+                </div>
+
+                <!-- Teacher Control Button -->
+                <button onclick="openTeacherLogin()" class="bg-amber-500 hover:bg-amber-600 text-blue-950 font-bold px-3.5 py-2 rounded-lg shadow transition flex items-center gap-2 text-xs md:text-sm">
+                    <i class="fa-solid fa-user-shield"></i>
+                    <span>ගුරු පාලනය</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 1: STUDENT LOGIN & GRADE / LESSON SELECTION SCREEN               -->
+    <!-- ===================================================================== -->
+    <section id="login-screen" class="max-w-4xl mx-auto px-4 mt-8">
+        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+            <div class="bg-gradient-to-r from-blue-900 to-blue-800 p-6 text-white text-center border-b-4 border-amber-500">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-white/10 rounded-full mb-3 border border-white/20">
+                    <i class="fa-solid fa-graduation-cap text-3xl text-amber-400"></i>
+                </div>
+                <h2 class="text-xl md:text-2xl font-extrabold">අ.පො.ස. (සාමාන්‍ය පෙළ) - ඉතිහාසය</h2>
+                <p class="text-blue-200 text-sm mt-1">10 සහ 11 ශ්‍රේණි සඳහා සම්පූර්ණ බහුවරණ ප්‍රශ්න පත්‍ර ඇගයීම් පද්ධතිය</p>
+            </div>
+
+            <form id="student-login-form" onsubmit="startStudentExam(event)" class="p-6 md:p-8 space-y-5">
+                <div class="bg-blue-50 border-l-4 border-blue-600 p-3.5 rounded-r-lg text-xs md:text-sm text-blue-900">
+                    <i class="fa-solid fa-circle-info mr-1"></i> ප්‍රශ්න පත්‍රය ආරම්භ කිරීමට පෙර ඔබගේ තොරතුරු, ශ්‍රේණිය සහ අදාළ ඒකකය තෝරන්න. විභාගය අවසන් කර පිළිතුරු පරීක්ෂාවෙන් පසු ඔබට අදහස් හා යෝජනා ඇතුළත් කළ හැක.
+                </div>
+
+                <!-- Student Name -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-1.5">
+                        <i class="fa-solid fa-user text-blue-700 mr-1"></i> සිසුවාගේ සම්පූර්ණ නම <span class="text-rose-600">*</span>
+                    </label>
+                    <input type="text" id="student-name" required placeholder="උදා: කේ. ඒ. සඳුන් පෙරේරා"
+                        class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 outline-none text-slate-800 font-medium">
+                </div>
+
+                <!-- School/Class & Year Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">
+                            <i class="fa-solid fa-school text-blue-700 mr-1"></i> පාසල / පන්තිය / කණ්ඩායම <span class="text-rose-600">*</span>
+                        </label>
+                        <input type="text" id="student-school" required placeholder="උදා: සාන්ත අන්තෝනි විදුහල / 10A හෝ 11B"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 outline-none text-slate-800 font-medium">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1.5">
+                            <i class="fa-solid fa-calendar-days text-blue-700 mr-1"></i> වසර <span class="text-rose-600">*</span>
+                        </label>
+                        <input type="text" id="student-year" required value="2026" placeholder="2026"
+                            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 outline-none text-slate-800 font-bold text-center">
+                    </div>
+                </div>
+
+                <!-- Select Grade (10 vs 11) -->
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2">
+                        <i class="fa-solid fa-layer-group text-blue-700 mr-1"></i> ශ්‍රේණිය තෝරන්න <span class="text-rose-600">*</span>
+                    </label>
+                    <div class="grid grid-cols-2 gap-4">
+                        <label class="cursor-pointer">
+                            <input type="radio" name="selected-grade" value="10" class="peer sr-only" checked onchange="onGradeRadioChange()">
+                            <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-blue-600 peer-checked:bg-blue-50 hover:bg-slate-50 transition text-center">
+                                <span class="text-base font-extrabold text-blue-900 block"><i class="fa-solid fa-book mr-1 text-blue-700"></i> 10 ශ්‍රේණිය</span>
+                                <span class="text-xs text-slate-500 font-semibold">ඒකක 01 සිට 10 දක්වා</span>
+                            </div>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" name="selected-grade" value="11" class="peer sr-only" onchange="onGradeRadioChange()">
+                            <div class="p-4 rounded-xl border-2 border-slate-200 peer-checked:border-blue-600 peer-checked:bg-blue-50 hover:bg-slate-50 transition text-center">
+                                <span class="text-base font-extrabold text-blue-900 block"><i class="fa-solid fa-book mr-1 text-blue-700"></i> 11 ශ්‍රේණිය</span>
+                                <span class="text-xs text-slate-500 font-semibold">ඒකක 01 සිට 08 දක්වා</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Dynamic Lesson / Unit Selection Grid -->
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <label class="text-sm font-bold text-slate-700">
+                            <i class="fa-solid fa-book-open text-blue-700 mr-1"></i> පාඩම / ඒකකය තෝරන්න <span class="text-rose-600">*</span>
+                        </label>
+                        <span id="grade-badge-label" class="text-xs font-bold bg-amber-100 text-amber-900 px-2.5 py-0.5 rounded-full border border-amber-300">10 ශ්‍රේණිය</span>
+                    </div>
+                    <div id="unit-radio-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[46vh] overflow-y-auto pr-1">
+                        <!-- Rendered dynamically depending on Grade -->
+                    </div>
+                </div>
+
+                <div class="pt-3">
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2 text-base md:text-lg">
+                        <i class="fa-solid fa-play"></i>
+                        විභාගය ආරම්භ කරන්න
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 2: MAIN EXAM CONTAINER (Hidden until Login)                      -->
+    <!-- ===================================================================== -->
+    <main id="exam-screen" class="hidden max-w-5xl mx-auto px-4 mt-4">
+
+        <!-- Unit Quick Switcher Bar inside Exam -->
+        <div class="bg-blue-900 text-white rounded-xl px-4 py-2.5 mb-4 shadow flex items-center justify-between gap-2 overflow-x-auto no-print">
+            <div class="flex items-center gap-1.5">
+                <span id="switcher-grade-badge" class="text-xs bg-amber-400 text-blue-950 font-bold px-2 py-0.5 rounded shrink-0 mr-1">10 ශ්‍රේණිය</span>
+                <span class="text-xs text-blue-200 font-bold mr-1 shrink-0">ඒකකය මාරු කරන්න:</span>
+                <div id="unit-switcher" class="flex items-center gap-1.5"></div>
+            </div>
+            <button onclick="returnToHome()" class="bg-white/10 hover:bg-white/20 text-amber-300 px-3 py-1 rounded-lg text-xs font-bold transition shrink-0">
+                <i class="fa-solid fa-arrow-left mr-1"></i> තොරතුරු වෙනස් කරන්න
+            </button>
+        </div>
+
+        <!-- Student Info Strip -->
+        <div class="bg-white border border-slate-200 text-slate-800 rounded-xl p-4 mb-5 shadow-sm flex flex-wrap justify-between items-center gap-3 text-xs md:text-sm">
+            <div class="flex flex-wrap items-center gap-4">
+                <span><i class="fa-solid fa-user-graduate text-blue-700 mr-1"></i> <strong>නම:</strong> <span id="disp-name">-</span></span>
+                <span><i class="fa-solid fa-school text-blue-700 mr-1"></i> <strong>පාසල / පන්තිය:</strong> <span id="disp-school">-</span></span>
+                <span><i class="fa-solid fa-calendar text-blue-700 mr-1"></i> <strong>වසර:</strong> <span id="disp-year">-</span></span>
+                <span><i class="fa-solid fa-award text-amber-600 mr-1"></i> <strong>ශ්‍රේණිය:</strong> <span id="disp-grade" class="font-bold text-blue-900">10 ශ්‍රේණිය</span></span>
+            </div>
+            <span class="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full">
+                <i class="fa-solid fa-cloud-arrow-up mr-1"></i> ස්වයංක්‍රීය ලකුණු සුරැකීම සක්‍රීයයි
+            </span>
+        </div>
+
+        <!-- Examination Banner -->
+        <div class="bg-white rounded-xl shadow-md p-5 mb-6 border border-slate-200">
+            <div class="text-center border-b pb-4 mb-4 border-slate-200">
+                <h2 id="banner-main-title" class="text-lg md:text-xl font-bold text-slate-800">අ.පො.ස. (සාමාන්‍ය පෙළ) - ඉතිහාසය</h2>
+                <p id="banner-sub-title" class="text-sm font-semibold text-slate-600">කාලය: පැය එකයි</p>
+            </div>
+            <div class="text-xs md:text-sm text-slate-700 space-y-1 bg-amber-50 p-3 rounded-lg border border-amber-200">
+                <p class="font-bold text-amber-900 mb-1"><i class="fa-solid fa-circle-info mr-1"></i> උපදෙස්:</p>
+                <p>• සියලුම ප්‍රශ්න වලට පිළිතුරු සපයන්න. විභාගය අවසන් කළ පසු ඔබගේ ලකුණු Google Sheet සහ පද්ධතිය තුළ සුරැකේ.</p>
+                <p>• ප්‍රශ්න පත්‍රය අවසන් කර උත්තර පත්‍රය පරීක්ෂා කිරීමෙන් පසු ඔබගේ වටිනා අදහස් හා යෝජනා පහළින් ඇතුළත් කළ හැක.</p>
+            </div>
+        </div>
+
+        <!-- Quick Jump Navigation Grid -->
+        <div class="bg-white rounded-xl shadow-md p-4 mb-6 border border-slate-200 no-print">
+            <h3 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">ප්‍රශ්න වෙත ඉක්මනින් පිවිසෙන්න:</h3>
+            <div id="nav-grid" class="grid grid-cols-8 sm:grid-cols-10 md:grid-cols-20 gap-1.5"></div>
+        </div>
+
+        <!-- Questions List Container -->
+        <div id="questions-container" class="space-y-6"></div>
+
+        <!-- Submit Button Section -->
+        <div id="submit-box" class="mt-8 text-center bg-white p-6 rounded-xl shadow-md border border-slate-200 no-print">
+            <p class="text-slate-600 mb-4 text-sm">සියලු ප්‍රශ්න සඳහා පිළිතුරු සැපයීමෙන් පසු ඔබගේ ලකුණු පරීක්ෂා කර ගැනීමට පහත බොත්තම ඔබන්න.</p>
+            <button onclick="confirmSubmit()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg transition-all duration-200 flex items-center gap-2 mx-auto text-base">
+                <i class="fa-solid fa-paper-plane"></i>
+                විභාගය අවසන් කරන්න (Submit)
+            </button>
+        </div>
+
+        <!-- Results Modal / Section (Hidden by default) -->
+        <div id="results-section" class="hidden mt-8 bg-white rounded-2xl shadow-2xl border-2 border-blue-600 p-6 md:p-8">
+            <div class="text-center border-b pb-6 mb-6">
+                <div class="inline-flex items-center justify-center w-20 h-20 bg-blue-100 text-blue-800 rounded-full mb-3 shadow-inner">
+                    <i class="fa-solid fa-trophy text-3xl"></i>
+                </div>
+                <h2 class="text-2xl font-extrabold text-slate-800">ඔබගේ විභාග ප්‍රතිඵලය</h2>
+                <p id="result-unit-subtitle" class="text-slate-500 text-sm mt-1">ඉතිහාසය</p>
+                
+                <!-- Student Certificate Details -->
+                <div class="mt-4 inline-block bg-slate-100 border border-slate-300 rounded-xl px-5 py-2.5 text-xs md:text-sm text-slate-700">
+                    <span class="font-bold text-slate-900" id="res-student-name"></span> | 
+                    <span id="res-student-school"></span> (<span id="res-student-year"></span>) |
+                    <span id="res-student-grade" class="font-bold text-blue-900"></span>
+                </div>
+
+                <!-- Google Sheet Sync Status Badge -->
+                <div class="mt-3 block">
+                    <div id="sheet-sync-status" class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-xs font-bold bg-blue-50 text-blue-800 border border-blue-200">
+                        <i class="fa-solid fa-spinner fa-spin"></i>
+                        <span>Google Sheet වෙත ලකුණු යවමින් පවතී...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Summary Stats -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+                    <span class="text-xs text-blue-600 font-bold uppercase block">ලබාගත් ලකුණු</span>
+                    <span id="score-text" class="text-3xl font-black text-blue-900">0 / 40</span>
+                </div>
+                <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+                    <span class="text-xs text-emerald-600 font-bold uppercase block">ප්‍රතිශතය</span>
+                    <span id="percentage-text" class="text-3xl font-black text-emerald-900">0%</span>
+                </div>
+                <div class="bg-amber-50 border border-amber-200 rounded-xl p-4 text-center">
+                    <span class="text-xs text-amber-600 font-bold uppercase block">සාමාර්ථය</span>
+                    <span id="grade-text" class="text-3xl font-black text-amber-900">-</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons on Result -->
+            <div class="flex flex-wrap justify-center gap-3 mb-8 no-print">
+                <button onclick="window.print()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-5 py-2.5 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-print"></i> ප්‍රතිඵල පත්‍රිකාව මුද්‍රණය කරන්න / PDF
+                </button>
+                <button onclick="returnToHome()" class="bg-blue-700 hover:bg-blue-800 text-white font-bold px-5 py-2.5 rounded-xl text-sm flex items-center gap-2">
+                    <i class="fa-solid fa-rotate-right"></i> වෙනත් ඒකකයක් තෝරන්න
+                </button>
+            </div>
+
+            <!-- Answer Key Matrix Table -->
+            <div class="mb-8 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                <h3 class="font-bold text-slate-800 mb-3 text-center text-sm md:text-base border-b pb-2">
+                    <i class="fa-solid fa-table-cells mr-2 text-blue-700"></i> පිළිතුරු වගුව (Answer Sheet Table)
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-center text-xs md:text-sm border-collapse border border-slate-300 bg-white">
+                        <thead>
+                            <tr class="bg-slate-200 text-slate-700">
+                                <th class="border border-slate-300 p-1.5">ප්‍රශ්න අංකය</th>
+                                <th class="border border-slate-300 p-1.5">පිළිතුර</th>
+                                <th class="border border-slate-300 p-1.5">ප්‍රශ්න අංකය</th>
+                                <th class="border border-slate-300 p-1.5">පිළිතුර</th>
+                                <th class="border border-slate-300 p-1.5">ප්‍රශ්න අංකය</th>
+                                <th class="border border-slate-300 p-1.5">පිළිතුර</th>
+                                <th class="border border-slate-300 p-1.5">ප්‍රශ්න අංකය</th>
+                                <th class="border border-slate-300 p-1.5">පිළිතුර</th>
+                            </tr>
+                        </thead>
+                        <tbody id="answer-matrix-body"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Detailed Question Review Header -->
+            <div class="mb-4 flex items-center justify-between border-b pb-2">
+                <h3 class="font-bold text-lg text-slate-800">
+                    <i class="fa-solid fa-list-check text-blue-600 mr-2"></i> පිළිතුරු සවිස්තරාත්මක පරීක්ෂාව
+                </h3>
+                <span class="text-xs bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full border">Green: නිවැරදියි | Red: වැරදියි</span>
+            </div>
+
+            <!-- Question Review Detailed Cards -->
+            <div id="review-container" class="space-y-6"></div>
+
+            <!-- ===================================================================== -->
+            <!-- STUDENT FEEDBACK & SUGGESTIONS SECTION (VISIBLE ONLY AFTER EXAM REVIEW) -->
+            <!-- ===================================================================== -->
+            <div id="feedback-container" class="mt-10 pt-8 border-t-2 border-slate-300 no-print">
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 border-2 border-blue-400 rounded-2xl p-6 md:p-8 shadow-md">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-900 text-amber-400 flex items-center justify-center text-2xl shadow">
+                            <i class="fa-solid fa-comments"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg md:text-xl font-extrabold text-blue-950">සිසුවාගේ අදහස් හා යෝජනා (Feedback & Suggestions)</h3>
+                            <p class="text-xs md:text-sm text-slate-600">ප්‍රශ්න පත්‍රය සහ පද්ධතිය පිළිබඳව ඔබගේ අදහස් හා යෝජනා ඇතුළත් කරන්න. ඒවා Google Drive / Sheet වෙත ස්වයංක්‍රීයව සුරැකේ.</p>
+                        </div>
+                    </div>
+
+                    <form id="feedback-form" onsubmit="submitStudentFeedback(event)" class="space-y-4">
+                        <div>
+                            <label class="block text-xs md:text-sm font-bold text-slate-700 mb-1.5">
+                                ප්‍රශ්න පත්‍රයේ ගුණාත්මකභාවය ශ්‍රේණිගත කරන්න (Rating):
+                            </label>
+                            <div class="star-rating flex items-center gap-2 text-2xl text-slate-300" id="star-rating-box">
+                                <i class="fa-solid fa-star" data-star="1" onclick="setRating(1)"></i>
+                                <i class="fa-solid fa-star" data-star="2" onclick="setRating(2)"></i>
+                                <i class="fa-solid fa-star" data-star="3" onclick="setRating(3)"></i>
+                                <i class="fa-solid fa-star" data-star="4" onclick="setRating(4)"></i>
+                                <i class="fa-solid fa-star" data-star="5" onclick="setRating(5)"></i>
+                                <span id="rating-text" class="text-xs md:text-sm font-bold text-slate-600 ml-2">තරු 5න් 5ක්</span>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs md:text-sm font-bold text-slate-700 mb-1.5">
+                                ඔබගේ අදහස් හා යෝජනා (Suggestions & Comments) <span class="text-rose-600">*</span>
+                            </label>
+                            <textarea id="feedback-comments" required rows="3" placeholder="ප්‍රශ්න පත්‍රය පිළිබඳ ඔබගේ අදහස්, යෝජනා හෝ ගැටලු මෙහි සටහන් කරන්න..."
+                                class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-200 outline-none text-slate-800 text-xs md:text-sm"></textarea>
+                        </div>
+
+                        <div class="flex items-center justify-between flex-wrap gap-3">
+                            <div id="feedback-status-badge" class="hidden text-xs font-bold px-3 py-1.5 rounded-lg"></div>
+                            <button type="submit" id="btn-feedback-submit" class="bg-blue-900 hover:bg-blue-950 text-white font-bold px-6 py-2.5 rounded-xl shadow transition flex items-center gap-2 text-xs md:text-sm">
+                                <i class="fa-solid fa-cloud-arrow-up"></i> අදහස් හා යෝජනා Drive වෙත සුරකින්න
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- ===================================================================== -->
+    <!-- TEACHER PIN LOGIN MODAL (Secure Protected Login)                       -->
+    <!-- ===================================================================== -->
+    <div id="teacher-pin-modal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-sm w-full p-6 border border-slate-200">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h3 class="font-bold text-lg text-slate-800"><i class="fa-solid fa-lock text-amber-500 mr-2"></i> ගුරු පාලන පිවිසුම</h3>
+                <button onclick="closeTeacherLogin()" class="text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <p class="text-xs text-slate-600 mb-3">ගුරු පාලන පුවරුවට පිවිසීම සඳහා රහස් අංකය ඇතුළත් කරන්න.</p>
+            <input type="password" id="teacher-pin-input" placeholder="PIN අංකය" onkeydown="if(event.key==='Enter') verifyTeacherPin()"
+                class="w-full px-4 py-2.5 rounded-xl border border-slate-300 focus:border-blue-600 outline-none text-center font-mono text-lg tracking-widest mb-4">
+            <div class="flex gap-2">
+                <button onclick="closeTeacherLogin()" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 rounded-xl text-sm">අවලංගු කරන්න</button>
+                <button onclick="verifyTeacherPin()" class="flex-1 bg-blue-900 hover:bg-blue-950 text-white font-bold py-2.5 rounded-xl text-sm">පිවිසෙන්න</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- TEACHER CONTROL PANEL DASHBOARD MODAL                                 -->
+    <!-- ===================================================================== -->
+    <div id="teacher-panel-modal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm overflow-y-auto p-3 md:p-6 no-print">
+        <div class="max-w-6xl mx-auto bg-white rounded-2xl shadow-2xl border border-slate-300 overflow-hidden my-4">
+            <!-- Panel Header -->
+            <div class="bg-slate-900 text-white px-6 py-4 flex flex-wrap justify-between items-center gap-3 border-b-4 border-amber-500">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-amber-500 text-slate-900 flex items-center justify-center font-bold text-xl">
+                        <i class="fa-solid fa-chalkboard-user"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg md:text-xl font-bold">ගුරු පාලන පුවරුව (Teacher Control Panel - 10 සහ 11 ශ්‍රේණි)</h2>
+                        <p class="text-xs text-slate-300">සිසුන්ගේ ප්‍රතිඵල, අදහස් හා යෝජනා, ප්‍රශ්න සංස්කරණය සහ Google Drive/Sheet සබඳතාව</p>
+                    </div>
+                </div>
+                <button onclick="closeTeacherPanel()" class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-1.5">
+                    <i class="fa-solid fa-xmark"></i> වසන්න
+                </button>
+            </div>
+
+            <!-- Teacher Panel Navigation Tabs -->
+            <div class="bg-slate-100 border-b border-slate-300 px-5 pt-3 flex flex-wrap gap-2">
+                <button id="tp-tab-btn-results" onclick="switchTeacherTab('results')" class="px-4 py-2.5 rounded-t-xl font-bold text-xs md:text-sm bg-white text-blue-950 border-t-2 border-x border-slate-300 -mb-px flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-chart-column text-blue-700"></i>
+                    <span>ප්‍රතිඵල සහ පද්ධති සැකසුම්</span>
+                </button>
+                <button id="tp-tab-btn-feedbacks" onclick="switchTeacherTab('feedbacks')" class="px-4 py-2.5 rounded-t-xl font-bold text-xs md:text-sm bg-slate-200/80 text-slate-600 hover:bg-white/70 border-t border-x border-transparent flex items-center gap-2 transition">
+                    <i class="fa-solid fa-comments text-emerald-600"></i>
+                    <span>සිසුන්ගේ අදහස් හා යෝජනා (Feedback)</span>
+                </button>
+                <button id="tp-tab-btn-editor" onclick="switchTeacherTab('editor')" class="px-4 py-2.5 rounded-t-xl font-bold text-xs md:text-sm bg-slate-200/80 text-slate-600 hover:bg-white/70 border-t border-x border-transparent flex items-center gap-2 transition">
+                    <i class="fa-solid fa-pen-to-square text-amber-600"></i>
+                    <span>ප්‍රශ්න හා පිළිතුරු සංස්කරණය (Question Bank Editor)</span>
+                </button>
+            </div>
+
+            <!-- Panel Content 1: Results & Settings -->
+            <div id="tp-tab-results" class="p-5 md:p-6 space-y-6">
+                
+                <!-- Summary Cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    <div class="bg-blue-50 border border-blue-200 p-4 rounded-xl">
+                        <span class="text-xs font-bold text-blue-700 block">මුළු විභාග සංඛ්‍යාව</span>
+                        <span id="tp-total-students" class="text-2xl font-black text-blue-950">0</span>
+                    </div>
+                    <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-xl">
+                        <span class="text-xs font-bold text-emerald-700 block">සාමාන්‍ය ලකුණු (Average)</span>
+                        <span id="tp-avg-score" class="text-2xl font-black text-emerald-950">0 / 40</span>
+                    </div>
+                    <div class="bg-amber-50 border border-amber-200 p-4 rounded-xl">
+                        <span class="text-xs font-bold text-amber-700 block">'A' සාමාර්ථ ගණන</span>
+                        <span id="tp-a-count" class="text-2xl font-black text-amber-950">0</span>
+                    </div>
+                    <div class="bg-purple-50 border border-purple-200 p-4 rounded-xl">
+                        <span class="text-xs font-bold text-purple-700 block">වැඩිම ලකුණු</span>
+                        <span id="tp-max-score" class="text-2xl font-black text-purple-950">0</span>
+                    </div>
+                </div>
+
+                <!-- Teacher Settings & Actions Bar -->
+                <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div>
+                            <label class="text-xs font-bold text-slate-600 block mb-1">ශ්‍රේණිය පෙරන්න:</label>
+                            <select id="tp-filter-grade" onchange="onTeacherFilterGradeChange()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs md:text-sm bg-white font-bold">
+                                <option value="all">සියලුම ශ්‍රේණි (10 & 11)</option>
+                                <option value="10">10 ශ්‍රේණිය</option>
+                                <option value="11">11 ශ්‍රේණිය</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-bold text-slate-600 block mb-1">ඒකකය පෙරන්න:</label>
+                            <select id="tp-filter-unit" onchange="renderTeacherTable()" class="px-3 py-1.5 rounded-lg border border-slate-300 text-xs md:text-sm bg-white font-semibold">
+                                <option value="all">සියලුම ඒකක</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-bold text-slate-600 block mb-1">විභාග කාලය (මිනිත්තු):</label>
+                            <div class="flex items-center gap-1">
+                                <input type="number" id="tp-exam-minutes" min="5" max="180" value="60" class="w-20 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs md:text-sm font-bold text-center">
+                                <button onclick="saveExamSettings()" class="bg-blue-700 hover:bg-blue-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold">සුරකින්න</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-bold text-slate-600 block mb-1">නව PIN අංකය:</label>
+                            <div class="flex items-center gap-1">
+                                <input type="password" id="tp-new-pin" maxlength="12" placeholder="නව PIN" class="w-24 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs md:text-sm font-mono text-center">
+                                <button onclick="updateTeacherPin()" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold">වෙනස් කරන්න</button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-bold text-slate-600 block mb-1">Google Apps Script Web App URL:</label>
+                            <div class="flex items-center gap-1">
+                                <input type="text" id="tp-script-url" placeholder="https://script.google.com/macros/s/.../exec" class="w-48 md:w-64 px-2.5 py-1.5 rounded-lg border border-slate-300 text-xs font-mono">
+                                <button onclick="saveWebAppUrlSetting()" class="bg-indigo-700 hover:bg-indigo-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold">URL සුරකින්න</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="exportResultsCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-file-excel"></i> Excel (CSV) බාගත කරන්න
+                        </button>
+                        <button onclick="clearAllResults()" class="bg-rose-100 hover:bg-rose-200 text-rose-800 border border-rose-300 px-3.5 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center gap-1.5">
+                            <i class="fa-solid fa-trash"></i> සියලු දත්ත මකන්න
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Student Results Table -->
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table class="w-full text-left border-collapse text-xs md:text-sm">
+                        <thead>
+                            <tr class="bg-slate-800 text-white">
+                                <th class="p-3">#</th>
+                                <th class="p-3">සිසුවාගේ නම</th>
+                                <th class="p-3">පාසල / පන්තිය</th>
+                                <th class="p-3">වසර</th>
+                                <th class="p-3">ශ්‍රේණිය</th>
+                                <th class="p-3">ඒකකය</th>
+                                <th class="p-3 text-center">ලකුණු</th>
+                                <th class="p-3 text-center">ප්‍රතිශතය</th>
+                                <th class="p-3 text-center">සාමාර්ථය</th>
+                                <th class="p-3">දිනය / වේලාව</th>
+                                <th class="p-3 text-center">ක්‍රියාමාර්ග</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tp-results-body" class="divide-y divide-slate-200 bg-white"></tbody>
+                    </table>
+                </div>
+
+                <!-- Single Student Answer Sheet Inspection Box inside Teacher Panel -->
+                <div id="tp-student-detail-box" class="hidden bg-blue-50/60 border-2 border-blue-400 rounded-xl p-5">
+                    <div class="flex justify-between items-center border-b border-blue-200 pb-3 mb-4">
+                        <h4 class="font-bold text-blue-950 text-base" id="tp-detail-title">සිසුවාගේ පිළිතුරු විශ්ලේෂණය</h4>
+                        <button onclick="document.getElementById('tp-student-detail-box').classList.add('hidden')" class="text-xs bg-blue-900 text-white px-3 py-1 rounded-lg font-bold">වසන්න</button>
+                    </div>
+                    <div id="tp-detail-grid" class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-2 text-xs"></div>
+                </div>
+
+            </div>
+
+            <!-- Panel Content 2: Student Feedbacks & Suggestions -->
+            <div id="tp-tab-feedbacks" class="hidden p-5 md:p-6 space-y-5">
+                <div class="flex items-center justify-between flex-wrap gap-3 bg-emerald-50 border border-emerald-300 rounded-xl p-4">
+                    <div>
+                        <h3 class="font-extrabold text-emerald-950 text-base"><i class="fa-solid fa-comments text-emerald-700 mr-2"></i> සිසුන් ඉදිරිපත් කළ අදහස් හා යෝජනා</h3>
+                        <p class="text-xs text-slate-600">සිසුන් විභාගය අවසන් කර පිළිතුරු පරීක්ෂාවෙන් පසු එවූ අදහස් මෙහි සටහන් වේ.</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="exportFeedbacksCSV()" class="bg-emerald-700 hover:bg-emerald-800 text-white px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-file-excel"></i> අදහස් Excel (CSV)
+                        </button>
+                        <button onclick="clearAllFeedbacks()" class="bg-rose-100 hover:bg-rose-200 text-rose-800 border border-rose-300 px-3 py-2 rounded-lg text-xs font-bold">
+                            <i class="fa-solid fa-trash"></i> මකන්න
+                        </button>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                    <table class="w-full text-left border-collapse text-xs md:text-sm">
+                        <thead>
+                            <tr class="bg-slate-800 text-white">
+                                <th class="p-3">#</th>
+                                <th class="p-3">සිසුවාගේ නම</th>
+                                <th class="p-3">පාසල / පන්තිය</th>
+                                <th class="p-3">ශ්‍රේණිය & ඒකකය</th>
+                                <th class="p-3 text-center">ශ්‍රේණිගත කිරීම (Rating)</th>
+                                <th class="p-3">අදහස් හා යෝජනා</th>
+                                <th class="p-3">දිනය / වේලාව</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tp-feedbacks-body" class="divide-y divide-slate-200 bg-white"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Panel Content 3: Question Bank Editor -->
+            <div id="tp-tab-editor" class="hidden p-5 md:p-6 space-y-5">
+                <div class="bg-amber-50 border border-amber-300 rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div>
+                            <label class="text-xs font-bold text-slate-700 block mb-1">ශ්‍රේණිය:</label>
+                            <select id="qe-grade-select" onchange="onEditorGradeChange()" class="px-3.5 py-2 rounded-lg border border-slate-300 text-xs md:text-sm bg-white font-bold text-blue-900">
+                                <option value="10">10 ශ්‍රේණිය</option>
+                                <option value="11">11 ශ්‍රේණිය</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="text-xs font-bold text-slate-700 block mb-1">ඒකකය තෝරන්න:</label>
+                            <select id="qe-unit-select" onchange="renderQuestionEditor()" class="px-3.5 py-2 rounded-lg border border-slate-300 text-xs md:text-sm bg-white font-bold text-slate-800"></select>
+                        </div>
+
+                        <div id="qe-autosave-badge" class="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300 mt-4 sm:mt-5">
+                            <i class="fa-solid fa-cloud-check"></i>
+                            <span>සියලු වෙනස්කම් ස්වයංක්‍රීයව සුරැකේ</span>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button onclick="addNewQuestionToUnit()" class="bg-blue-700 hover:bg-blue-800 text-white px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-plus"></i> නව ප්‍රශ්නයක් එක් කරන්න
+                        </button>
+                        <button onclick="syncEditedQuestionsToGoogleSheet(true)" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Drive & Sheet වෙත සුරකින්න
+                        </button>
+                        <button onclick="exportUpdatedHtmlFile()" class="bg-slate-800 hover:bg-slate-900 text-white px-3.5 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow" title="සංස්කරණය කළ සම්පූර්ණ HTML ගොනුව බාගත කරන්න">
+                            <i class="fa-solid fa-download"></i> HTML ගොනුව බාගන්න
+                        </button>
+                        <button onclick="resetUnitQuestionsToDefault()" class="bg-rose-100 hover:bg-rose-200 text-rose-800 border border-rose-300 px-3 py-2 rounded-lg text-xs font-bold flex items-center gap-1.5">
+                            <i class="fa-solid fa-rotate-left"></i> මුල් තත්ත්වයට
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Search / Filter inside Question Editor -->
+                <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                    <div class="relative flex-grow max-w-md">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                        <input type="text" id="qe-search-input" oninput="renderQuestionEditor()" placeholder="ප්‍රශ්න අංකය හෝ වචනයක් මගින් සොයන්න..."
+                            class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-300 text-xs md:text-sm outline-none focus:border-blue-600">
+                    </div>
+                    <span id="qe-count-label" class="text-xs font-bold text-slate-600">මුළු ප්‍රශ්න: 40</span>
+                </div>
+
+                <!-- Questions Editor List -->
+                <div id="qe-questions-list" class="space-y-4 max-h-[62vh] overflow-y-auto pr-1"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- COMPLETE QUESTION BANKS (GRADE 10 & GRADE 11 INTACT)                  -->
+    <!-- ===================================================================== -->
+    <script>
+"""
+
+with open('C:/Users/manpe/.gemini/antigravity/scratch/history_exam/html_header_body.txt', 'w', encoding='utf-8') as f:
+    f.write(HTML_HEADER_AND_BODY)
+
+print("Saved html_header_body.txt successfully")
